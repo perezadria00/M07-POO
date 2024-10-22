@@ -20,10 +20,10 @@ class DepositTransaction implements BankTransactionInterface
     /**
      * Aplica la transacción de depósito a la cuenta bancaria.
      *
-     * @param BackAccountInterface $account
+     * @param BankAccountInterface $account
      * @return float Nuevo saldo después del depósito.
      */
-    public function applyTransaction(BackAccountInterface $account): float {
+    public function applyTransaction(BankAccountInterface $account): float {
         // Obtener el saldo actual de la cuenta
         $currentBalance = $account->getBalance();
         

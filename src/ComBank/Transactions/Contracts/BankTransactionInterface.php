@@ -14,7 +14,7 @@ use ComBank\Exceptions\InvalidOverdraftFundsException;
 
 interface BankTransactionInterface
 {
-    public function applyTransaction(BackAccountInterface $transaction): float;
+    public function applyTransaction(BankAccountInterface $transaction): float;
 
     public function getTransactionInfo(): string;
 

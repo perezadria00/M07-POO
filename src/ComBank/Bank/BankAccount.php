@@ -21,7 +21,7 @@ use ComBank\OverdraftStrategy\Contracts\OverdraftInterface;
 use ComBank\Support\Traits\AmountValidationTrait;
 use ComBank\Transactions\Contracts\BankTransactionInterface;
 
-class BankAccount implements BackAccountInterface
+class BankAccount implements BankAccountInterface
 {
     
     
@@ -33,7 +33,7 @@ class BankAccount implements BackAccountInterface
     public function __construct(float $newBalance = 0.0)
     {
        $this->setBalance(balance: $newBalance);
-       $this->status = BackAccountInterface::STATUS_OPEN;
+       $this->status = BankAccountInterface::STATUS_OPEN;
     }
 
     public function getBalance(): float
@@ -90,21 +90,21 @@ class BankAccount implements BackAccountInterface
     }
 
     public function openAccount(): void{
-        $this->status = BackAccountInterface::STATUS_OPEN;
+        $this->status = BankAccountInterface::STATUS_OPEN;
     }
     public function closeAccount(): void{
 
-        $this->status = BackAccountInterface::STATUS_CLOSED;
+        $this->status = BankAccountInterface::STATUS_CLOSED;
         
     }
 
     public function reopenAccount(): void{
         
-        $this->status = BackAccountInterface::STATUS_OPEN;
+        $this->status = BankAccountInterface::STATUS_OPEN;
     }
 
     public function isOpen(): bool{
-        if($this->status = BackAccountInterface::STATUS_OPEN){
+        if($this->status = BankAccountInterface::STATUS_OPEN){
             return true;
         }else{
             return false;

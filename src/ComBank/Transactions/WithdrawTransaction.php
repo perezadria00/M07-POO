@@ -29,7 +29,7 @@ class WithdrawTransaction
      * @param BackAccountInterface $account
      * @return float Nuevo saldo después del depósito.
      */
-    public function applyTransaction(BackAccountInterface $account): float {
+    public function applyTransaction(BankAccountInterface $account): float {
         // Obtener el saldo actual de la cuenta
         $currentBalance = $account->getBalance();
         
