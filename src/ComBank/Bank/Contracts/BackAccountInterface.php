@@ -1,4 +1,6 @@
-<?php namespace ComBank\Bank\Contracts;
+<?php
+
+namespace ComBank\Bank\Contracts;
 
 /**
  * Created by VS Code.
@@ -17,5 +19,20 @@ interface BackAccountInterface
     const STATUS_OPEN = 'OPEN';
     const STATUS_CLOSED = 'CLOSED';
 
-   
+    public function transaction(BankTransactionInterface $transaction): void;
+    public function isOpen(): bool;
+
+    public function openAccount(): void;
+
+    public function reopenAccount(): void;
+
+    public function closeAccount(): void;
+
+    public function getBalance(): float;
+
+    public function getOverdraft(): OverdraftInterface;
+
+    public function applyOverdraft(OverdraftInterface $overdraft): void;
+
+    public function setBalance(float $newBalance): void;
 }

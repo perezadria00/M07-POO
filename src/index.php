@@ -23,23 +23,35 @@ require_once 'bootstrap.php';
 pl('--------- [Start testing bank account #1, No overdraft] --------');
 try {
     // show balance account
-
+    $bankAccount1 = new BankAccount(newBalance: 400);
+    pl('My balance : ' . $bankAccount1->getBalance() . '$');
+   
     // close account
-
+    pl('My account is now closed.' .  $bankAccount1->closeAccount());
+   
     // reopen account
+    pl('My account is now open.' . $bankAccount1->reopenAccount());
 
+    // deposit +150
 
-    // deposit +150 
-    pl('Doing transaction deposit (+150) with current balance ' . $bankAccount1->getBalance());
+    
+    
+    pl('Doing transaction deposit (+150) with current balance ' . $bankAccount1->getBalance() . '$');
 
-    pl('My new balance after deposit (+150) : ' . $bankAccount1->getBalance());
+    $depositTransaction = new DepositTransaction(150);
+    $newBalance = $depositTransaction->applyTransaction($bankAccount1);
+    
+    pl('My new balance after deposit (+150) : ' . $bankAccount1->getBalance() . '$');
 
     // withdrawal -25
     pl('Doing transaction withdrawal (-25) with current balance ' . $bankAccount1->getBalance());
 
-    pl('My new balance after withdrawal (-25) : ' . $bankAccount1->getBalance());
+    
+
+    pl('My new balance after withdrawal (-25) : ' . $bankAccount1->getBalance() . '$');
 
     // withdrawal -600
+  
     pl('Doing transaction withdrawal (-600) with current balance ' . $bankAccount1->getBalance());
 
 } catch (ZeroAmountException $e) {
