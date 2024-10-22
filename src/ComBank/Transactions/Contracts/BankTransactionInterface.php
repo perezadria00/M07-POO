@@ -9,7 +9,7 @@ namespace ComBank\Transactions\Contracts;
  * Time: 7:29 PM
  */
 
-use ComBank\Bank\Contracts\BackAccountInterface;
+use ComBank\Bank\Contracts\BankAccountInterface;
 use ComBank\Exceptions\InvalidOverdraftFundsException;
 
 interface BankTransactionInterface

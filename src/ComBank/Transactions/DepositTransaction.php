@@ -2,7 +2,7 @@
 
 namespace ComBank\Transactions;
 
-use ComBank\Bank\Contracts\BackAccountInterface;
+use ComBank\Bank\Contracts\BankAccountInterface;
 use ComBank\Transactions\Contracts\BankTransactionInterface;
 use ComBank\Exceptions\ZeroAmountException;
 
