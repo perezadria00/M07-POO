@@ -13,42 +13,46 @@ use ComBank\Bank\Contracts\BankAccountInterface;
 use ComBank\Exceptions\InvalidOverdraftFundsException;
 use ComBank\Transactions\Contracts\BankTransactionInterface;
 
-class WithdrawTransaction 
+class WithdrawTransaction implements BankTransactionInterface
 
 {
     private float $amount; // Monto de la transacción
 
-    public function __construct(float $amount) {
-        
+    public function __construct(float $amount)
+    {
+
         $this->amount = $amount;
     }
 
-    /**
-     * Aplica la transacción de depósito a la cuenta bancaria.
-     *
-     * @param BankAccountInterface $account
-     * @return float Nuevo saldo después del depósito.
-     */
-    public function applyTransaction(BankAccountInterface $account): float {
-        // Obtener el saldo actual de la cuenta
-        $currentBalance = $account->getBalance();
-        
-        // Calcular el nuevo saldo
-        $newBalance = $currentBalance - $this->amount;
-        
-        // Establecer el nuevo saldo en la cuenta
-        $account->setBalance($newBalance);
-        
-        // Devolver el nuevo saldo
-        return $newBalance;
+    public function applyTransaction(BankAccountInterface $account): float
+{
+    // Obtener el saldo actual de la cuenta
+    $currentBalance = $account->getBalance();
+
+    // Calcular el nuevo saldo
+    $newBalance = $currentBalance - $this->amount;
+
+    // Verificar que el nuevo saldo no sea negativo
+    if ($newBalance < 0) {
+        throw new InvalidOverdraftFundsException('Insufficient funds for withdrawal.');
     }
 
+    // Establecer el nuevo saldo en la cuenta
+    $account->setBalance($newBalance);
+
+    // Devolver el nuevo saldo
+    return $newBalance;
+}
+
+    
+    
     /**
      * Obtiene la información de la transacción.
      *
      * @return string
      */
-    public function getTransactionInfo(): string {
+    public function getTransactionInfo(): string
+    {
         return "Depósito de" . $this->amount . "$";
     }
 
@@ -57,8 +61,8 @@ class WithdrawTransaction
      *
      * @return float
      */
-    public function getAmount(): float {
+    public function getAmount(): float
+    {
         return $this->amount;
     }
-  
 }

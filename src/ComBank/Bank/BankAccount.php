@@ -83,11 +83,12 @@ class BankAccount implements BankAccountInterface
         return $this;
     }
 
-    public function transaction(BankTransactionInterface $transaction): void{
-        $amount = $transaction->getAmount();
-        $this->setBalance($this->getBalance() + $amount);
-
+    public function transaction(BankTransactionInterface $transaction): void {
+      
+        $newBalance = $transaction->applyTransaction($this);
+        $this->setBalance($newBalance);
     }
+    
 
     public function openAccount(): void{
         $this->status = BankAccountInterface::STATUS_OPEN;
