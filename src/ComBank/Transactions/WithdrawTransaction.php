@@ -11,53 +11,61 @@ namespace ComBank\Transactions;
 
 use ComBank\Bank\Contracts\BankAccountInterface;
 use ComBank\Exceptions\InvalidOverdraftFundsException;
+use ComBank\Exceptions\ZeroAmountException;
 use ComBank\Transactions\Contracts\BankTransactionInterface;
+use ComBank\Exceptions\FailedTransactionException;
 
 class WithdrawTransaction implements BankTransactionInterface
-
 {
-    private float $amount; // Monto de la transacción
+    private float $amount;
 
     public function __construct(float $amount)
     {
-
+        if ($amount <= 0) {
+            throw new ZeroAmountException("The withdrawal amount must be greater than zero.");
+        }
         $this->amount = $amount;
     }
 
     public function applyTransaction(BankAccountInterface $account): float
-{
-    // Obtener el saldo actual de la cuenta
-    $currentBalance = $account->getBalance();
+    {
+        // Get the current balance of the account
+        $currentBalance = $account->getBalance();
 
-    // Calcular el nuevo saldo
-    $newBalance = $currentBalance - $this->amount;
+        // Calculate the new balance after withdrawal
+        $newBalance = $currentBalance - $this->amount;
 
-    // Verificar que el nuevo saldo no sea negativo
-    if ($newBalance < 0) {
-        throw new InvalidOverdraftFundsException('Insufficient funds for withdrawal.');
+        // Get the configured overdraft and its limit
+        $overdraft = $account->getOverdraft();
+        $overdraftLimit = $overdraft->getOverdraftFundsAmount();
+
+        // If no overdraft is allowed (overdraft limit is 0) and the balance is negative, throw InvalidOverdraftFundsException
+        if ($overdraftLimit === 0.0 && $newBalance < 0) {
+            throw new InvalidOverdraftFundsException('Insufficient funds for withdrawal without overdraft.');
+        }
+
+        // If the new balance is within the allowed overdraft limit, apply the transaction
+        if ($newBalance >= -$overdraftLimit) {
+            $account->setBalance($newBalance);
+            return $newBalance;
+        }
+
+        // If the overdraft limit is exceeded, throw FailedTransactionException
+        throw new FailedTransactionException('The withdrawal amount exceeds the allowed overdraft limit.');
     }
 
-    // Establecer el nuevo saldo en la cuenta
-    $account->setBalance($newBalance);
-
-    // Devolver el nuevo saldo
-    return $newBalance;
-}
-
-    
-    
     /**
-     * Obtiene la información de la transacción.
+     * Gets the transaction information.
      *
      * @return string
      */
     public function getTransactionInfo(): string
     {
-        return "Depósito de" . $this->amount . "$";
+        return "WITHDRAW_TRANSACTION";
     }
 
     /**
-     * Obtiene el monto de la transacción.
+     * Gets the transaction amount.
      *
      * @return float
      */
@@ -66,3 +74,4 @@ class WithdrawTransaction implements BankTransactionInterface
         return $this->amount;
     }
 }
+

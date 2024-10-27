@@ -8,46 +8,46 @@ use ComBank\Exceptions\ZeroAmountException;
 
 class DepositTransaction implements BankTransactionInterface
 {
-    private float $amount; // Monto de la transacción
+    private float $amount; // Transaction amount
 
     public function __construct(float $amount) {
         if ($amount <= 0) {
-            throw new ZeroAmountException('El depósito debe ser superior a 0.');
+            throw new ZeroAmountException('The deposit must be greater than 0.');
         }
         $this->amount = $amount;
     }
 
     /**
-     * Aplica la transacción de depósito a la cuenta bancaria.
+     * Applies the deposit transaction to the bank account.
      *
      * @param BankAccountInterface $account
-     * @return float Nuevo saldo después del depósito.
+     * @return float New balance after the deposit.
      */
     public function applyTransaction(BankAccountInterface $account): float {
-        // Obtener el saldo actual de la cuenta
+        // Get the current balance of the account
         $currentBalance = $account->getBalance();
         
-        // Calcular el nuevo saldo
+        // Calculate the new balance
         $newBalance = $currentBalance + $this->amount;
         
-        // Establecer el nuevo saldo en la cuenta
+        // Set the new balance in the account
         $account->setBalance($newBalance);
         
-        // Devolver el nuevo saldo
+        // Return the new balance
         return $newBalance;
     }
 
     /**
-     * Obtiene la información de la transacción.
+     * Gets the transaction information.
      *
      * @return string
      */
     public function getTransactionInfo(): string {
-        return "Depósito de" . $this->amount . "$";
+        return "DEPOSIT_TRANSACTION";
     }
 
     /**
-     * Obtiene el monto de la transacción.
+     * Gets the transaction amount.
      *
      * @return float
      */
@@ -55,4 +55,5 @@ class DepositTransaction implements BankTransactionInterface
         return $this->amount;
     }
 }
+
 

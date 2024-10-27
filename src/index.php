@@ -6,8 +6,9 @@ use ComBank\Transactions\WithdrawTransaction;
 use ComBank\Exceptions\BankAccountException;
 use ComBank\Exceptions\FailedTransactionException;
 use ComBank\Exceptions\ZeroAmountException;
-use ComBank\Exceptions\InvalidOverdraftFundsException; // Asegúrate de incluir esta excepción
+use ComBank\Exceptions\InvalidOverdraftFundsException; 
 use ComBank\OverdraftStrategy\Contracts\OverdraftInterface;
+use ComBank\OverdraftStrategy\SilverOverdraft;
 
 require_once 'bootstrap.php';
 
@@ -19,10 +20,13 @@ try {
     pl('My balance: ' . $bankAccount1->getBalance() . '$');
 
     // Cerrar cuenta
-    pl('My account is now closed. ' . $bankAccount1->closeAccount());
+    $bankAccount1->closeAccount();
+    pl('My account is now closed.');
 
     // Reabrir cuenta
-    pl('My account is now open. ' . $bankAccount1->reopenAccount());
+    $bankAccount1->reopenAccount();  // Llama al método para abrir la cuenta
+    pl('My account is now reopened.');    // Imprime el mensaje sin concatenar el resultado
+
 
     // Depósito +150
     pl('Doing transaction deposit (+150) with current balance: ' . $bankAccount1->getBalance() . '$');
@@ -36,13 +40,8 @@ try {
 
     // Intentar retirar -600
     pl('Doing transaction withdrawal (-600) with current balance: ' . $bankAccount1->getBalance() . '$');
-    $bankAccount1->transaction(transaction: new WithdrawTransaction(600)); 
-    
-    
-   
-    
-    
-} catch (InvalidOverdraftFundsException $e) {  
+    $bankAccount1->transaction(transaction: new WithdrawTransaction(600));
+} catch (InvalidOverdraftFundsException $e) {
     pl('Error transaction: ' . $e->getMessage());
 } catch (ZeroAmountException $e) {
     pl($e->getMessage());
@@ -61,43 +60,53 @@ pl('My account is now closed.' . $bankAccount1->closeAccount());
 //---[Bank account 2]---/
 pl('--------- [Start testing bank account #2, Silver overdraft (100.0 funds)] --------');
 try {
+    // Crear una nueva cuenta con saldo 200
+    $bankAccount2 = new BankAccount(newBalance: 200);
 
-    // show balance account
+    // Asignar el sobregiro Silver
+    $silverOverdraft = new SilverOverdraft();
+    $bankAccount2->setOverdraft($silverOverdraft);
 
-    $bankAccount2 = new BankAccount(newBalance:'200');
+    // Mostrar balance inicial
+    pl('Current balance: ' . $bankAccount2->getBalance() . '$');
 
-    // deposit +100
-    pl('Doing transaction deposit (+100) with current balance ' . $bankAccount2->getBalance());
-   
-   
+    // Depósito +100
+    pl('Performing deposit (+100) with current balance: ' . $bankAccount2->getBalance() . '$');
+    $bankAccount2->transaction(transaction: new DepositTransaction(100));
+    pl('Balance after deposit (+100): ' . $bankAccount2->getBalance() . '$');
 
-    pl('My new balance after deposit (+100) : ' . $bankAccount2->getBalance());
+    // Retiro -300 (deja el balance en 0.0)
+    pl('Performing withdrawal (-300) with current balance: ' . $bankAccount2->getBalance() . '$');
+    $bankAccount2->transaction(transaction: new WithdrawTransaction(300));
+    pl('Balance after withdrawal (-300): ' . $bankAccount2->getBalance() . '$');
 
-    // withdrawal -300
-    pl('Doing transaction deposit (-300) with current balance ' . $bankAccount2->getBalance());
+    // Retiro -50 (balance debería ser -50.0, permitido por el sobregiro)
+    pl('Performing withdrawal (-50) with current balance: ' . $bankAccount2->getBalance() . '$');
+    $bankAccount2->transaction(transaction: new WithdrawTransaction(50));
+    pl('Balance after withdrawal (-50): ' . $bankAccount2->getBalance() . '$');
 
-    pl('My new balance after withdrawal (-300) : ' . $bankAccount2->getBalance());
-
-    // withdrawal -50
-    pl('Doing transaction deposit (-50) with current balance ' . $bankAccount2->getBalance());
-
-    pl('My new balance after withdrawal (-50) with funds : ' . $bankAccount2->getBalance());
-
-    // withdrawal -120
-    pl('Doing transaction withdrawal (-120) with current balance ' . $bankAccount2->getBalance());
+    // Intentar retirar -120 (debería fallar porque excede el límite del sobregiro)
+    pl('Attempting withdrawal (-120) with current balance: ' . $bankAccount2->getBalance() . '$');
+    $bankAccount2->transaction(transaction: new WithdrawTransaction(120));
 } catch (FailedTransactionException $e) {
-    pl('Error transaction: ' . $e->getMessage());
+    pl('Transaction failed: ' . $e->getMessage());
 }
-pl('My balance after failed last transaction : ' . $bankAccount2->getBalance());
+pl('Balance after failed transaction: ' . $bankAccount2->getBalance() . '$');
 
 try {
-    pl('Doing transaction withdrawal (-20) with current balance : ' . $bankAccount2->getBalance());
-} catch (FailedTransactionException $e) {
-    pl('Error transaction: ' . $e->getMessage());
-}
-pl('My new balance after withdrawal (-20) with funds : ' . $bankAccount2->getBalance());
+    // Retiro -20 (debería ser permitido, deja el balance en -70.0)
+    pl('Performing withdrawal (-20) with current balance: ' . $bankAccount2->getBalance() . '$');
+    $bankAccount2->transaction(transaction: new WithdrawTransaction(20));
+    pl('Balance after withdrawal (-20): ' . $bankAccount2->getBalance() . '$');
 
-try {
+    // Cerrar la cuenta
+    pl('Closing account...');
+    $bankAccount2->closeAccount();
+    pl('Account closed.');
+
+    // Intentar cerrar la cuenta de nuevo (debería fallar)
+    pl('Attempting to close the account again...');
+    $bankAccount2->closeAccount();
 } catch (BankAccountException $e) {
-    pl($e->getMessage());
+    pl('Error: ' . $e->getMessage());
 }

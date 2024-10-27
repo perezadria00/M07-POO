@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace ComBank\OverdraftStrategy;
 
 use ComBank\OverdraftStrategy\Contracts\OverdraftInterface;
@@ -15,15 +16,16 @@ use ComBank\OverdraftStrategy\Contracts\OverdraftInterface;
  */
 class SilverOverdraft implements OverdraftInterface
 {
-    private $overdraftAmount = 100.00; 
+    private $overdraftAmount = 100.00;
 
-    public function isGrantOverdraftFunds($overdraftBalance): bool {
-        
-        return $overdraftBalance >= $this->overdraftAmount;
+    public function isGrantOverdraftFunds($newAmount): bool
+    {
+
+        return abs($newAmount) <= $this->overdraftAmount;
     }
 
-    public function getOverdraftFundsAmount(): float {
-        return $this->overdraftAmount; 
+    public function getOverdraftFundsAmount(): float
+    {
+        return $this->overdraftAmount;
     }
 }
-
