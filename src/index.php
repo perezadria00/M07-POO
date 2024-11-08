@@ -1,6 +1,7 @@
 <?php
 
 use ComBank\Bank\BankAccount;
+use ComBank\Bank\InternationalBankAccount;
 use ComBank\Transactions\DepositTransaction;
 use ComBank\Transactions\WithdrawTransaction;
 use ComBank\Exceptions\BankAccountException;
@@ -12,20 +13,23 @@ use ComBank\OverdraftStrategy\SilverOverdraft;
 
 require_once 'bootstrap.php';
 
+
 //---[Bank account 1]---/
 pl('--------- [Start testing bank account #1, No overdraft] --------');
 try {
     // Crear una nueva cuenta con saldo 400
     $bankAccount1 = new BankAccount(newBalance: 400);
-    pl('My balance: ' . $bankAccount1->getBalance() . '$');
+    $internationalAccount = new InternationalBankAccount(200);
+
+    pl('My balance: ' . $internationalAccount->getConvertedBalance());
 
     // Cerrar cuenta
     $bankAccount1->closeAccount();
     pl('My account is now closed.');
 
     // Reabrir cuenta
-    $bankAccount1->reopenAccount();  // Llama al método para abrir la cuenta
-    pl('My account is now reopened.');    // Imprime el mensaje sin concatenar el resultado
+    $bankAccount1->reopenAccount();  
+    pl('My account is now reopened.');    
 
 
     // Depósito +150

@@ -14,17 +14,28 @@ use ComBank\Exceptions\InvalidArgsException;
 use ComBank\Exceptions\ZeroAmountException;
 use ComBank\OverdraftStrategy\NoOverdraft;
 use ComBank\Bank\Contracts\BankAccountInterface;
+use ComBank\Bank\Contracts\CurrencyConverterInterface;
 use ComBank\Exceptions\FailedTransactionException;
 use ComBank\Exceptions\InvalidOverdraftFundsException;
 use ComBank\OverdraftStrategy\Contracts\OverdraftInterface;
 use ComBank\Support\Traits\AmountValidationTrait;
 use ComBank\Transactions\Contracts\BankTransactionInterface;
+use ComBank\Bank\Person;
+use ComBank\Support\Traits\ApiTrait;
 
 class BankAccount implements BankAccountInterface
 {
-    private float $balance;
-    private string $status;
-    private OverdraftInterface $overdraft;
+
+    use ApiTrait;
+    protected float $balance;
+    protected string $status;
+    protected OverdraftInterface $overdraft;
+
+    protected string $currency;
+
+    protected Person $holder;
+
+
 
     public function __construct(float $newBalance = 0.0)
     {
@@ -127,4 +138,6 @@ class BankAccount implements BankAccountInterface
     {
         $this->overdraft = $overdraft;
     }
+
+   
 }
