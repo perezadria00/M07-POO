@@ -10,8 +10,11 @@ use ComBank\Exceptions\ZeroAmountException;
 use ComBank\Exceptions\InvalidOverdraftFundsException; 
 use ComBank\OverdraftStrategy\Contracts\OverdraftInterface;
 use ComBank\OverdraftStrategy\SilverOverdraft;
+use ComBank\Bank\Person;
 
 require_once 'bootstrap.php';
+require_once 'ComBank/Bank/Person.php';
+require_once 'ComBank/Support/Traits/ApiTrait.php';
 
 
 //---[Bank account 1]---/
@@ -19,9 +22,10 @@ pl('--------- [Start testing bank account #1, No overdraft] --------');
 try {
     // Crear una nueva cuenta con saldo 400
     $bankAccount1 = new BankAccount(newBalance: 400);
-    $internationalAccount = new InternationalBankAccount(200);
+    $internationalAccount = new InternationalBankAccount(400);
 
-    pl('My balance: ' . $internationalAccount->getConvertedBalance());
+    pl('My InternationalBankAccount balance is: ' . $internationalAccount->getConvertedBalance() . $internationalAccount->getConvertedCurrency());
+    pl('My NationalBankAccount balance is: ' . $bankAccount1->getBalance());    
 
     // Cerrar cuenta
     $bankAccount1->closeAccount();
@@ -30,7 +34,6 @@ try {
     // Reabrir cuenta
     $bankAccount1->reopenAccount();  
     pl('My account is now reopened.');    
-
 
     // Depósito +150
     pl('Doing transaction deposit (+150) with current balance: ' . $bankAccount1->getBalance() . '$');
@@ -45,6 +48,7 @@ try {
     // Intentar retirar -600
     pl('Doing transaction withdrawal (-600) with current balance: ' . $bankAccount1->getBalance() . '$');
     $bankAccount1->transaction(transaction: new WithdrawTransaction(600));
+
 } catch (InvalidOverdraftFundsException $e) {
     pl('Error transaction: ' . $e->getMessage());
 } catch (ZeroAmountException $e) {
@@ -59,6 +63,14 @@ pl('My balance after failed last transaction: ' . $bankAccount1->getBalance() . 
 
 pl('My account is now closed.' . $bankAccount1->closeAccount());
 
+//--- Verificar el correo electrónico ---
+$person1 = new Person("Adrià", 1, "adria@gmail.com", +34608337960);
+$emailValid = $person1->validateEmail($person1->getEmail());
+pl('Email valid: ' . ($emailValid ? 'Yes' : 'No'));
+
+// Validar número de teléfono
+$phoneValidationMessage = $person1->verifyPhoneNumber($person1->getPhoneNumber());
+pl($phoneValidationMessage);
 
 
 //---[Bank account 2]---/

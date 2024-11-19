@@ -8,6 +8,13 @@ class InternationalBankAccount extends BankAccount
     {
        
         return $this->convertedBalance($this->getBalance());
+    }   
+
+    public function getConvertedCurrency() : string{
+
+        $CURRENCY = '$';
+
+        return $CURRENCY;
     }
 }
 

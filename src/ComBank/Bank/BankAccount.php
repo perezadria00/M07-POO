@@ -25,23 +25,21 @@ use ComBank\Support\Traits\ApiTrait;
 
 class BankAccount implements BankAccountInterface
 {
-
     use ApiTrait;
+
     protected float $balance;
     protected string $status;
     protected OverdraftInterface $overdraft;
-
     protected string $currency;
-
     protected Person $holder;
 
 
-
-    public function __construct(float $newBalance = 0.0)
+    public function __construct(float $newBalance = 0.0, string $iban = '')
     {
         $this->setBalance(balance: $newBalance);
         $this->status = BankAccountInterface::STATUS_OPEN;
         $this->overdraft = new NoOverdraft();
+
     }
 
     public function getBalance(): float
@@ -94,6 +92,7 @@ class BankAccount implements BankAccountInterface
         return $this;
     }
 
+
     public function transaction(BankTransactionInterface $transaction): void
     {
         if ($this->status === BankAccountInterface::STATUS_CLOSED) {
@@ -138,6 +137,4 @@ class BankAccount implements BankAccountInterface
     {
         $this->overdraft = $overdraft;
     }
-
-   
 }
