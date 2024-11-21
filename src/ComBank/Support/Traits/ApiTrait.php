@@ -18,33 +18,54 @@ trait ApiTrait
      * @throws Exception
      */
 
-    
-     public function validateEmail(string $email): bool
-     {
-         // Validación local como respaldo
-         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-             return false;
-         }
-     
-         // Validación con API
-         $apiKey = 'ce9781c7b1c88926c4b7bf75c6d519030167b14e';
-         $url = "https://api.hunter.io/v2/email-verifier?email=" . urlencode($email) . "&api_key=" . $apiKey;
-     
-         $response = @file_get_contents($url);
-     
-         if ($response === false) {
-             return true; // Si la API falla, asumimos que es válido basado en la validación local
-         }
-     
-         $data = json_decode($response, true);
-     
-         return isset($data['data']['result']) && $data['data']['result'] === 'deliverable';
-     }
-     
-     
-    
 
-    
+    public function validateEmail(string $email): bool
+    {
+        // Validación local
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return false; // Si el formato no es válido, retorna falso
+        }
+
+        $apiKey = 'test_fa5d0f5a3b4e4ed5a256d3d3aebee856';
+        $url = "https://api.heybounce.io/v1/validate?email=" . urlencode($email) . "&api_key=" . $apiKey;
+
+        try {
+            // Realizar la solicitud a la API
+            $response = @file_get_contents($url);
+
+            if ($response === false) {
+                throw new \Exception("No se pudo conectar a la API HeyBounce");
+            }
+
+            // Decodificar la respuesta de la API
+            $data = json_decode($response, true);
+
+            // Verificar que los datos necesarios existen en la respuesta
+            if (!isset($data['data']['status'])) {
+                throw new \Exception("Respuesta inválida: falta el campo 'status'");
+            }
+
+            // Obtener el estado del correo
+            $status = $data['data']['status'];
+
+            // Considerar como válido si el estado es 'safe'
+            return $status === 'safe';
+        } catch (\Exception $e) {
+            // Registrar el error y retornar falso
+            error_log("Error en validateEmail: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Convierte el saldo de EUR a USD.
@@ -88,26 +109,26 @@ trait ApiTrait
      * @throws Exception
      */
     public function verifyPhoneNumber(string $phoneNumber): array
-{
-    $apiKey = "27ec63146ee1b5adad66dce378b9308f";
-    $url = "http://apilayer.net/api/validate?access_key=$apiKey&number=" . urlencode($phoneNumber);
+    {
+        $apiKey = "27ec63146ee1b5adad66dce378b9308f";
+        $url = "http://apilayer.net/api/validate?access_key=$apiKey&number=" . urlencode($phoneNumber);
 
-    $response = @file_get_contents($url);
+        $response = @file_get_contents($url);
 
-    if ($response === false) {
-        return ['valid' => false]; // Si no hay conexión o falla la solicitud
+        if ($response === false) {
+            return ['valid' => false]; // Si no hay conexión o falla la solicitud
+        }
+
+        $data = json_decode($response, true);
+
+        // Si la respuesta contiene el campo 'valid', devuelve los datos
+        if (isset($data['valid'])) {
+            return $data;
+        }
+
+        // Respuesta por defecto si algo sale mal
+        return ['valid' => false];
     }
-
-    $data = json_decode($response, true);
-
-    // Si la respuesta contiene el campo 'valid', devuelve los datos
-    if (isset($data['valid'])) {
-        return $data;
-    }
-
-    // Respuesta por defecto si algo sale mal
-    return ['valid' => false];
-}
 
 
     function detectFraud(BankTransactionInterface $transaction) {}

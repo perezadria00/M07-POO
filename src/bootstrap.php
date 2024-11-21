@@ -15,9 +15,20 @@ require_once __DIR__.'/../vendor/autoload.php';
 function pl($mixed)
 {
     echo "<br>";
-    echo $mixed;
+
+    // Si el valor es un array, usar print_r para mostrarlo
+    if (is_array($mixed)) {
+        echo "<pre>"; // Agregar formato para legibilidad
+        print_r($mixed);
+        echo "</pre>";
+    } else {
+        // Si no es un array, imprimirlo directamente
+        echo $mixed;
+    }
+
     echo "<br>";
 }
+
 
 function pr($mixed)
 {

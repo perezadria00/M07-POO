@@ -123,11 +123,14 @@ public function testInternationalBankAccountCurrencyWithConversion(): void
 
 public function testValidEmailForAccountHolder(): void
 {
-    $person = new Person(name: "Adrià", idCard: 1, email: "valid.email@example.com", phone_number: "+34608337960");
+    $person = new Person(name: "Adrià", idCard: 1, email: "perezadria00@gmail.com", phone_number: "+34608337960");
 
     // Verifica que el correo es válido
     $this->assertTrue($person->validateEmail($person->getEmail()));
 }
+
+
+
 
     
 

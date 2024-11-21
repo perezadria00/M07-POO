@@ -16,39 +16,46 @@ require_once 'bootstrap.php';
 require_once 'ComBank/Bank/Person.php';
 require_once 'ComBank/Support/Traits/ApiTrait.php';
 
+// --- [Añadido: Test de cuentas nacionales e internacionales] ---
+pl('--------- [Start testing national account (No conversion)] --------');
+$bankAccount1 = new BankAccount(newBalance: 500);
+pl('My balance: ' . $bankAccount1->getBalance() . ' € (Euro)');
 
-//---[Bank account 1]---/
+pl('--------- [Start testing international account (Dollar conversion)] --------');
+$internationalAccount = new InternationalBankAccount(300);
+pl('My balance: ' . $internationalAccount->getBalance() . ' € (Euro)');
+
+try {
+    // Usar la API para convertir divisas
+    $convertedBalance = $internationalAccount->convertedBalance($internationalAccount->getBalance());
+    pl('Converting balance to Dollars (using external API)');
+    pl('Converted balance: ' . $convertedBalance . ' $ (USD)');
+} catch (Exception $e) {
+    pl('Error during conversion: ' . $e->getMessage());
+}
+
+// --- [Código Original: Bank Account 1] ---
 pl('--------- [Start testing bank account #1, No overdraft] --------');
 try {
-    // Crear una nueva cuenta con saldo 400
     $bankAccount1 = new BankAccount(newBalance: 400);
     $internationalAccount = new InternationalBankAccount(400);
 
     pl('My InternationalBankAccount balance is: ' . $internationalAccount->getConvertedBalance() . $internationalAccount->getConvertedCurrency());
     pl('My NationalBankAccount balance is: ' . $bankAccount1->getBalance());    
 
-    // Cerrar cuenta
     $bankAccount1->closeAccount();
     pl('My account is now closed.');
 
-    // Reabrir cuenta
     $bankAccount1->reopenAccount();  
     pl('My account is now reopened.');    
 
-    // Depósito +150
-    pl('Doing transaction deposit (+150) with current balance: ' . $bankAccount1->getBalance() . '$');
     $bankAccount1->transaction(transaction: new DepositTransaction(150));
     pl('My new balance after deposit (+150): ' . $bankAccount1->getBalance() . '$');
 
-    // Retiro -25
-    pl('Doing transaction withdrawal (-25) with current balance: ' . $bankAccount1->getBalance() . '$');
     $bankAccount1->transaction(transaction: new WithdrawTransaction(25));
     pl('My new balance after withdrawal (-25): ' . $bankAccount1->getBalance() . '$');
 
-    // Intentar retirar -600
-    pl('Doing transaction withdrawal (-600) with current balance: ' . $bankAccount1->getBalance() . '$');
     $bankAccount1->transaction(transaction: new WithdrawTransaction(600));
-
 } catch (InvalidOverdraftFundsException $e) {
     pl('Error transaction: ' . $e->getMessage());
 } catch (ZeroAmountException $e) {
@@ -58,51 +65,58 @@ try {
 } catch (FailedTransactionException $e) {
     pl('Error transaction: ' . $e->getMessage());
 }
-
 pl('My balance after failed last transaction: ' . $bankAccount1->getBalance() . '$');
-
 pl('My account is now closed.' . $bankAccount1->closeAccount());
 
-//--- Verificar el correo electrónico ---
-$person1 = new Person("Adrià", 1, "adria@gmail.com", +34608337960);
-$emailValid = $person1->validateEmail($person1->getEmail());
-pl('Email valid: ' . ($emailValid ? 'Yes' : 'No'));
+pl(""); 
+
+$email = "perezadria00@gmail.com";
+$person = new Person(name: "Adrià", idCard: 1, email: $email, phone_number: "+34608337960");
+
 
 // Validar número de teléfono
-$phoneValidationMessage = $person1->verifyPhoneNumber($person1->getPhoneNumber());
+$phoneValidationMessage = $person->verifyPhoneNumber($person->getPhoneNumber());
 pl($phoneValidationMessage);
 
+// --- [Añadido: Validación de correos electrónicos] ---
+pl("\n[Start testing account email address functionality]");
+$emailValid = "john.doe@example.com";
+$personValid = new Person(name: "John Doe", idCard: 1, email: $emailValid, phone_number: "+34608337960");
+pl('Validating email: ' . $emailValid);
+if ($personValid->validateEmail($personValid->getEmail())) {
+    pl('Email is valid.');
+} else {
+    pl('Error: Invalid email address: ' . $emailValid);
+}
 
-//---[Bank account 2]---/
+$emailInvalid = "jane.doe@invalid-email";
+$personInvalid = new Person(name: "Jane Doe", idCard: 2, email: $emailInvalid, phone_number: "+34608337960");
+pl('Validating email: ' . $emailInvalid);
+if ($personInvalid->validateEmail($personInvalid->getEmail())) {
+    pl('Error: Invalid email address: ' . $emailInvalid);
+} else {
+    pl('Email is invalid.');
+}
+
+// --- [Código Original: Bank Account 2] ---
 pl('--------- [Start testing bank account #2, Silver overdraft (100.0 funds)] --------');
 try {
-    // Crear una nueva cuenta con saldo 200
     $bankAccount2 = new BankAccount(newBalance: 200);
 
-    // Asignar el sobregiro Silver
     $silverOverdraft = new SilverOverdraft();
     $bankAccount2->setOverdraft($silverOverdraft);
 
-    // Mostrar balance inicial
     pl('Current balance: ' . $bankAccount2->getBalance() . '$');
 
-    // Depósito +100
-    pl('Performing deposit (+100) with current balance: ' . $bankAccount2->getBalance() . '$');
     $bankAccount2->transaction(transaction: new DepositTransaction(100));
     pl('Balance after deposit (+100): ' . $bankAccount2->getBalance() . '$');
 
-    // Retiro -300 (deja el balance en 0.0)
-    pl('Performing withdrawal (-300) with current balance: ' . $bankAccount2->getBalance() . '$');
     $bankAccount2->transaction(transaction: new WithdrawTransaction(300));
     pl('Balance after withdrawal (-300): ' . $bankAccount2->getBalance() . '$');
 
-    // Retiro -50 (balance debería ser -50.0, permitido por el sobregiro)
-    pl('Performing withdrawal (-50) with current balance: ' . $bankAccount2->getBalance() . '$');
     $bankAccount2->transaction(transaction: new WithdrawTransaction(50));
     pl('Balance after withdrawal (-50): ' . $bankAccount2->getBalance() . '$');
 
-    // Intentar retirar -120 (debería fallar porque excede el límite del sobregiro)
-    pl('Attempting withdrawal (-120) with current balance: ' . $bankAccount2->getBalance() . '$');
     $bankAccount2->transaction(transaction: new WithdrawTransaction(120));
 } catch (FailedTransactionException $e) {
     pl('Transaction failed: ' . $e->getMessage());
@@ -110,18 +124,12 @@ try {
 pl('Balance after failed transaction: ' . $bankAccount2->getBalance() . '$');
 
 try {
-    // Retiro -20 (debería ser permitido, deja el balance en -70.0)
-    pl('Performing withdrawal (-20) with current balance: ' . $bankAccount2->getBalance() . '$');
     $bankAccount2->transaction(transaction: new WithdrawTransaction(20));
     pl('Balance after withdrawal (-20): ' . $bankAccount2->getBalance() . '$');
 
-    // Cerrar la cuenta
-    pl('Closing account...');
     $bankAccount2->closeAccount();
     pl('Account closed.');
 
-    // Intentar cerrar la cuenta de nuevo (debería fallar)
-    pl('Attempting to close the account again...');
     $bankAccount2->closeAccount();
 } catch (BankAccountException $e) {
     pl('Error: ' . $e->getMessage());
