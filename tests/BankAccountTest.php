@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use ComBank\Bank\BankAccount;
+use ComBank\Bank\NationalBankAccount;
 use ComBank\Bank\InternationalBankAccount;
 use ComBank\Bank\Person;
 use ComBank\OverdraftStrategy\SilverOverdraft;
@@ -86,36 +87,48 @@ class BankAccountTest extends TestCase
         $bankAccount->transaction(new DepositTransaction(50.0)); // Should throw exception because the account is closed
     }
 
-    // Test national bank account currency
     public function testNationalBankAccountCurrency(): void
-    {
-        $bankAccount = new BankAccount(newBalance: 400);
-        $this->assertEquals("€", $bankAccount->getCurrency());
-    }
+{
+    // Crear una cuenta bancaria nacional con la moneda predeterminada
+    $bankAccount = new NationalBankAccount(newBalance: 400);
 
-    // Test international bank account currency without conversion
-    public function testInternationalBankAccountCurrencyWithoutConversion(): void
-    {
-        $internationalAccount = new InternationalBankAccount(400);
-        $this->assertEquals("€", $internationalAccount->getConvertedCurrency());
-        $this->assertEquals(400, $internationalAccount->getConvertedBalance());
-    }
+    // Verificar que la moneda es "€"
+    $this->assertEquals("€", $bankAccount->getCurrency());
+}
 
-    // Test international bank account currency with conversion
-    public function testInternationalBankAccountCurrencyWithConversion(): void
-    {
-        $internationalAccount = new InternationalBankAccount(400);
-        $convertedBalance = $internationalAccount->getConvertedBalance(); // Assuming conversion to USD
-        $this->assertEquals("$", $internationalAccount->getConvertedCurrency());
-        $this->assertNotEquals(400, $convertedBalance); // Ensure conversion happened
-    }
 
-    public function testValidEmailForAccountHolder(): void
-    {
-        $person = new Person(name: "Adrià", idCard: 1, email: "valid.email@example.com", phone_number: "+34608337960");
-    
-        $this->assertTrue($person->validateEmail($person->getEmail()));
-    }
+public function testInternationalBankAccountCurrencyWithoutConversion(): void
+{
+    // Crear una cuenta internacional
+    $internationalAccount = new InternationalBankAccount(newBalance: 400);
+
+    // Verificar moneda inicial y balance sin conversión
+    $this->assertEquals("€", $internationalAccount->getConvertedCurrency());
+    $this->assertEquals(400, $internationalAccount->getConvertedBalance());
+}
+
+public function testInternationalBankAccountCurrencyWithConversion(): void
+{
+    // Crear una cuenta internacional
+    $internationalAccount = new InternationalBankAccount(newBalance: 400);
+
+    // Simular una conversión de moneda
+    $internationalAccount->convertBalance(toCurrency: "$", conversionRate: 1.1);
+
+    // Verificar moneda convertida y balance convertido
+    $this->assertEquals("$", $internationalAccount->getConvertedCurrency());
+    $this->assertEqualsWithDelta(440.0, $internationalAccount->getConvertedBalance(), 0.0001);
+}
+
+
+public function testValidEmailForAccountHolder(): void
+{
+    $person = new Person(name: "Adrià", idCard: 1, email: "valid.email@example.com", phone_number: "+34608337960");
+
+    // Verifica que el correo es válido
+    $this->assertTrue($person->validateEmail($person->getEmail()));
+}
+
     
 
     // Test invalid email for account holder
@@ -129,11 +142,16 @@ class BankAccountTest extends TestCase
     {
         $person = new Person(name: "Adrià", idCard: 1, email: "valid.email@example.com", phone_number: "+34608337960");
     
+        // Llama a verifyPhoneNumber y obtiene el resultado como array
         $phoneValidationResult = $person->verifyPhoneNumber(phoneNumber: $person->getPhoneNumber());
+    
+        // Construye un mensaje basado en el resultado
         $phoneValidationMessage = $phoneValidationResult['valid'] ? "Phone number valid: Yes" : "Phone number valid: No";
     
+        // Verifica que el mensaje contiene el texto esperado
         $this->assertStringContainsString("Phone number valid: Yes", $phoneValidationMessage);
     }
+    
     
     
 }

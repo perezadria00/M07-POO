@@ -30,16 +30,27 @@ class BankAccount implements BankAccountInterface
     protected float $balance;
     protected string $status;
     protected OverdraftInterface $overdraft;
-    protected string $currency;
+    protected string $currency; // Nueva propiedad para la moneda
     protected Person $holder;
 
-
-    public function __construct(float $newBalance = 0.0, string $iban = '')
+    public function __construct(float $newBalance = 0.0, string $currency = "€")
     {
         $this->setBalance(balance: $newBalance);
         $this->status = BankAccountInterface::STATUS_OPEN;
         $this->overdraft = new NoOverdraft();
+        $this->currency = $currency; // Asignar moneda por defecto o personalizada
+    }
 
+    // Getter para currency
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    // Setter para currency
+    public function setCurrency(string $currency): void
+    {
+        $this->currency = $currency;
     }
 
     public function getBalance(): float
@@ -47,11 +58,6 @@ class BankAccount implements BankAccountInterface
         return $this->balance;
     }
 
-    /**
-     * Set the value of balance
-     *
-     * @return self
-     */
     public function setBalance(float $balance): void
     {
         $this->balance = $balance;
@@ -62,11 +68,6 @@ class BankAccount implements BankAccountInterface
         return $this->status;
     }
 
-    /**
-     * Set the value of status
-     *
-     * @return self
-     */
     public function setStatus(string $status): self
     {
         $this->status = $status;
@@ -81,17 +82,11 @@ class BankAccount implements BankAccountInterface
         return $this->overdraft;
     }
 
-    /**
-     * Set the value of overdraft
-     *
-     * @return self
-     */
     public function setOverdraft(OverdraftInterface $overdraft): self
     {
         $this->overdraft = $overdraft;
         return $this;
     }
-
 
     public function transaction(BankTransactionInterface $transaction): void
     {
@@ -99,7 +94,6 @@ class BankAccount implements BankAccountInterface
             throw new BankAccountException("Transactions cannot be performed on a closed account.");
         }
 
-        // If the account is open, apply the transaction
         $newBalance = $transaction->applyTransaction($this);
         $this->setBalance($newBalance);
     }

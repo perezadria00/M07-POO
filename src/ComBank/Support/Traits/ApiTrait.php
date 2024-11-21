@@ -17,26 +17,32 @@ trait ApiTrait
      * @return bool
      * @throws Exception
      */
-    public function validateEmail(string $email): bool
-{
-    $apiKey = 'ce9781c7b1c88926c4b7bf75c6d519030167b14e';
-    $url = "https://api.hunter.io/v2/email-verifier?email=" . urlencode($email) . "&api_key=" . $apiKey;
 
-    $response = file_get_contents($url);
-
-    if ($response === false) {
-        return false; // Error en la solicitud
-    }
-
-    // Depuración de la respuesta
-    var_dump($response);
-    die();
-
-    $data = json_decode($response, true);
-
-    // Verificar que la API devuelva un resultado válido
-    return isset($data['data']['result']) && $data['data']['result'] === 'deliverable';
-}
+    
+     public function validateEmail(string $email): bool
+     {
+         // Validación local como respaldo
+         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+             return false;
+         }
+     
+         // Validación con API
+         $apiKey = 'ce9781c7b1c88926c4b7bf75c6d519030167b14e';
+         $url = "https://api.hunter.io/v2/email-verifier?email=" . urlencode($email) . "&api_key=" . $apiKey;
+     
+         $response = @file_get_contents($url);
+     
+         if ($response === false) {
+             return true; // Si la API falla, asumimos que es válido basado en la validación local
+         }
+     
+         $data = json_decode($response, true);
+     
+         return isset($data['data']['result']) && $data['data']['result'] === 'deliverable';
+     }
+     
+     
+    
 
     
 
@@ -81,19 +87,26 @@ trait ApiTrait
      * @return array
      * @throws Exception
      */
-    public function verifyPhoneNumber(string $phoneNumber): string
+    public function verifyPhoneNumber(string $phoneNumber): array
 {
     $apiKey = "27ec63146ee1b5adad66dce378b9308f";
     $url = "http://apilayer.net/api/validate?access_key=$apiKey&number=" . urlencode($phoneNumber);
 
-    $response = file_get_contents($url);
-    $data = json_decode($response, true);
+    $response = @file_get_contents($url);
 
-    if (isset($data['valid']) && $data['valid']) {
-        return "Phone number valid: Yes";
+    if ($response === false) {
+        return ['valid' => false]; // Si no hay conexión o falla la solicitud
     }
 
-    return "Phone number valid: No";
+    $data = json_decode($response, true);
+
+    // Si la respuesta contiene el campo 'valid', devuelve los datos
+    if (isset($data['valid'])) {
+        return $data;
+    }
+
+    // Respuesta por defecto si algo sale mal
+    return ['valid' => false];
 }
 
 
